@@ -26,14 +26,13 @@
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:layout_margin="@dimen/boxing_item_half_spacing"/>
-    <cn.jzvd.JZVideoPlayerStandard
+    <com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer
         android:id="@+id/videoplayer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:layout_margin="@dimen/boxing_item_half_spacing"
-        android:visibility="gone"
-        />
+        android:visibility="gone" />
          <!--//========yqy changed 2017-09-29=================== -->
     <ProgressBar
         android:id="@+id/loading"
@@ -42,6 +41,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:indeterminate="true"
-        android:visibility="gone"/><!--//========yqy changed 2017-09-29=================== -->
+        android:visibility="gone"/>
+    <!--//========yqy changed 2017-09-29=================== -->
     <!--不知道原因，无法用代码控制ProgressBar显示或者消失 -->
 </FrameLayout>

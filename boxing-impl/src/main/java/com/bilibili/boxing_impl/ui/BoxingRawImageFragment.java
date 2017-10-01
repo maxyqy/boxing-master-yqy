@@ -17,9 +17,11 @@
 
 package com.bilibili.boxing_impl.ui;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -27,6 +29,7 @@ import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.bilibili.boxing.AbsBoxingViewActivity;
@@ -35,11 +38,12 @@ import com.bilibili.boxing.model.entity.BaseMedia;
 import com.bilibili.boxing.model.entity.impl.ImageMedia;
 import com.bilibili.boxing.utils.BoxingLog;
 import com.bilibili.boxing_impl.R;
+import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
+import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
+import com.shuyu.gsyvideoplayer.video.base.GSYVideoPlayer;
 
 import java.lang.ref.WeakReference;
 
-import cn.jzvd.JZVideoPlayer;
-import cn.jzvd.JZVideoPlayerStandard;
 import uk.co.senab.photoview.PhotoView;
 import uk.co.senab.photoview.PhotoViewAttacher;
 
@@ -58,7 +62,8 @@ public class BoxingRawImageFragment extends BoxingBaseFragment {
     private ProgressBar mProgress;
   //  private ImageMedia mMedia;
   private BaseMedia mMedia;
-    private JZVideoPlayerStandard mVideoPlayer;
+    private StandardGSYVideoPlayer mVideoPlayer;
+    OrientationUtils orientationUtils;
     //========yqy changed 2017-09-29===================
 
     private PhotoViewAttacher mAttacher;
@@ -88,12 +93,12 @@ public class BoxingRawImageFragment extends BoxingBaseFragment {
     @Override
     public void onViewCreated(final View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mProgress = (ProgressBar) view.findViewById(R.id.loading);
+       // mProgress = (ProgressBar) view.findViewById(R.id.loading);
         mImageView = (PhotoView) view.findViewById(R.id.photo_view);
         mAttacher = new PhotoViewAttacher(mImageView);
         mAttacher.setRotatable(true);
         mAttacher.setToRightAngle(true);
-        mVideoPlayer=(JZVideoPlayerStandard)view.findViewById(R.id.videoplayer);
+        mVideoPlayer=(StandardGSYVideoPlayer)view.findViewById(R.id.videoplayer);
 //========yqy changed 2017-09-29===================
     }
 
@@ -112,8 +117,25 @@ public class BoxingRawImageFragment extends BoxingBaseFragment {
                 mVideoPlayer.setVisibility(View.VISIBLE);
                 mImageView.setVisibility(View.GONE);
                 Point point = getResizePointer(mMedia.getSize());
-                mVideoPlayer.setUp(mMedia.getPath(), JZVideoPlayerStandard.SCREEN_LAYOUT_NORMAL, "");
-                ((AbsBoxingViewActivity) getActivity()).loadRawImage(mVideoPlayer.thumbImageView, mMedia.getPath(), point.x, point.y, new BoxingCallback(this));
+                ImageView imageView = new ImageView(getContext());
+                ((AbsBoxingViewActivity) getActivity()).loadRawImage(imageView, mMedia.getPath(), point.x, point.y, new BoxingCallback(this));
+                mVideoPlayer.setThumbImageView(imageView);
+                mVideoPlayer.getTitleTextView().setVisibility(View.GONE);
+                mVideoPlayer.getBackButton().setVisibility(View.GONE);
+                mVideoPlayer.setRotateViewAuto(true);
+                mVideoPlayer.setLockLand(true);
+                mVideoPlayer.setShowFullAnimation(true);
+                mVideoPlayer.setNeedLockFull(true);
+                orientationUtils = new OrientationUtils(getActivity(), mVideoPlayer);
+                mVideoPlayer.getFullscreenButton().setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        orientationUtils.resolveByClick();
+                    }
+                });
+                mVideoPlayer.setIsTouchWiget(true);
+                mVideoPlayer.setUp("file://"+mMedia.getPath(),true,"");
+
             }
             //========yqy changed 2017-09-29===================
         }
@@ -172,8 +194,24 @@ public class BoxingRawImageFragment extends BoxingBaseFragment {
     @Override
     public void onPause() {
         super.onPause();
-        JZVideoPlayer.releaseAllVideos();
-    }//========yqy changed 2017-09-29===================
+        mVideoPlayer.onVideoPause();
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        mVideoPlayer.onVideoResume();
+    }
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (orientationUtils != null)
+            orientationUtils.releaseListener();
+        //释放所有
+        mVideoPlayer.setStandardVideoAllCallBack(null);
+        GSYVideoPlayer.releaseAllVideos();
+    }
+    //========yqy changed 2017-09-29===================
 
     private static class BoxingCallback implements IBoxingCallback {
         private WeakReference<BoxingRawImageFragment> mWr;
@@ -227,8 +265,6 @@ public class BoxingRawImageFragment extends BoxingBaseFragment {
                if (mWr.get().mAttacher != null) {
                    mWr.get().mAttacher.update();
                }
-           }else {
-               mWr.get().mVideoPlayer.thumbImageView.setImageResource(R.drawable.ic_boxing_broken_image);
            }
             //========yqy changed 2017-09-29===================
         }

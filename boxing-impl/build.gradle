@@ -136,6 +136,7 @@ dependencies {
     androidTestCompile 'com.android.support.test:runner:0.5'
     compile project(":boxing")
 
-    compile 'cn.jzvd:jiaozivideoplayer:6.0.2'
+    compile 'com.shuyu:gsyVideoPlayer-java:2.0.8'
+    compile 'com.shuyu:gsyVideoPlayer-ex_so:2.0.8'
 //========yqy changed 2017-09-29===================
 }
